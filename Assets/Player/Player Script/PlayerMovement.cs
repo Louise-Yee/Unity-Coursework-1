@@ -10,7 +10,8 @@ public class PlayerMovement : MonoBehaviour
 
     public float playerSpeed = 5.0f; // Movement speed
     public float jumpHeight = 1.5f; // Jump height
-    public float gravityValue = -9.81f; // Gravity strength
+    public float gravityValue = -9.81f; // Gravity acceleration value
+    public float terminalVelocity = -50f; // Maximum downward speed
 
     public int maxJumps = 2; // Max number of jumps allowed (Double jump)
     private int jumpCount; // Track the current jump count
@@ -81,14 +82,22 @@ public class PlayerMovement : MonoBehaviour
         // Handle jump input
         if (Input.GetButtonDown("Jump") && jumpCount < maxJumps)
         {
+            // Calculate the initial jump velocity using the physics formula:
+            // v = sqrt(2 * gravity * jumpHeight)
             playerVelocity.y = Mathf.Sqrt(jumpHeight * -2f * gravityValue);
             jumpCount++; // Increase the jump count
         }
 
-        // Apply gravity to vertical velocity
-        playerVelocity.y += gravityValue * Time.deltaTime;
+        // Apply gravity over time (velocity increases as we fall)
+        if (!groundedPlayer)
+        {
+            playerVelocity.y += gravityValue * Time.deltaTime; // Gravity accelerates the fall
+        }
 
-        // Apply the vertical movement
+        // Clamp the vertical velocity to prevent falling too fast (terminal velocity)
+        playerVelocity.y = Mathf.Max(playerVelocity.y, terminalVelocity);
+
+        // Apply the final vertical movement
         controller.Move(playerVelocity * Time.deltaTime);
     }
 }
