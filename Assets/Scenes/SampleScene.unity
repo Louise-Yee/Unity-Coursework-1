@@ -789,6 +789,7 @@ MonoBehaviour:
   runSpeed: 12
   jumpHeight: 1.5
   gravityValue: -9.81
+  terminalVelocity: -50
   isRunning: 0
   maxJumps: 2
   jumpCooldown: 1
