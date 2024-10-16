@@ -137,6 +137,8 @@ public class PlayerMovement : MonoBehaviour
     {
         if (Input.GetButtonDown("Jump") && jumpCount < maxJumps && !jumpBlocked)
         {
+            // Calculate the initial jump velocity using the physics formula:
+            // v = sqrt(2 * gravity * jumpHeight)
             playerVelocity.y = Mathf.Sqrt(jumpHeight * -2f * gravityValue);
             jumpCount++;
             jumpBlocked = true;
