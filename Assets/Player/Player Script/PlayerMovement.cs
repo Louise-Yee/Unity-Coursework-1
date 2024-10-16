@@ -21,6 +21,7 @@ public class PlayerMovement : MonoBehaviour
     public float runSpeed = 12.0f;
     public float jumpHeight = 1.5f;
     public float gravityValue = -9.81f;
+    public float terminalVelocity = -50f;
     public bool isRunning = false;
 
     // Jumping properties
@@ -142,7 +143,13 @@ public class PlayerMovement : MonoBehaviour
             Invoke("UnblockJump", jumpCooldown);
         }
 
-        playerVelocity.y += gravityValue * Time.deltaTime;
+        if (!groundedPlayer)
+        {
+            playerVelocity.y += gravityValue * Time.deltaTime; // Gravity accelerates the fall
+        }
+
+        // Clamp the vertical velocity to prevent falling too fast (terminal velocity)
+        playerVelocity.y = Mathf.Max(playerVelocity.y, terminalVelocity);
         controller.Move(playerVelocity * Time.deltaTime);
     }
 
