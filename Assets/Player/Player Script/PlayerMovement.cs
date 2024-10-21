@@ -12,7 +12,7 @@ public class PlayerMovement : MonoBehaviour
 
     // Player state variables
     private Vector3 playerVelocity;
-    private bool groundedPlayer;
+    public bool groundedPlayer;
     private bool enableMovement = true;
 
     // Movement properties
@@ -53,6 +53,13 @@ public class PlayerMovement : MonoBehaviour
     private bool isCrouching = false; // Track if player is crouching
     private float originalHeight; // Store original height
 
+    [Header("Wall Run")]
+    public LayerMask whatIsWall;
+    public float wallCheckDistance = 1f;
+    private bool wallLeft;
+    private bool wallRight;
+    private RaycastHit leftWallHit;
+    private RaycastHit rightWallHit;
     public CharacterController Controller
     {
         get
@@ -135,10 +142,34 @@ public class PlayerMovement : MonoBehaviour
 
     private void HandleJumpAndGravity()
     {
+        Vector3 origin = transform.position + Vector3.up * 0.5f;
+        // Check for left wall
+        wallLeft = Physics.Raycast(
+            origin,
+            -transform.right,
+            out leftWallHit,
+            wallCheckDistance,
+            whatIsWall
+        );
+
+        // Check for right wall
+        wallRight = Physics.Raycast(
+            origin,
+            transform.right,
+            out rightWallHit,
+            wallCheckDistance,
+            whatIsWall
+        );
+        // Check if the player is sticking to a wall
+        if (!groundedPlayer && (wallLeft || wallRight) && Input.GetKey(KeyCode.Space))
+        {
+            // Do not apply gravity while sticking to the wall
+            return;
+        }
+
+        // Jump logic
         if (Input.GetButtonDown("Jump") && jumpCount < maxJumps && !jumpBlocked)
         {
-            // Calculate the initial jump velocity using the physics formula:
-            // v = sqrt(2 * gravity * jumpHeight)
             playerVelocity.y = Mathf.Sqrt(jumpHeight * -2f * gravityValue);
             jumpCount++;
             jumpBlocked = true;
