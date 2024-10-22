@@ -14,7 +14,8 @@ public class WallStick : MonoBehaviour
     // Camera reference
     public Camera playerCamera;
     public float tiltAngle = 15f; // Angle to tilt the camera
-
+    public float tiltSpeed = 5f; // Speed of camera tilt transition
+    private float currentTilt = 0f; // Track the current tilt
     private RaycastHit leftWallHit;
     private RaycastHit rightWallHit;
     private bool wallLeft;
@@ -85,17 +86,35 @@ public class WallStick : MonoBehaviour
             // Stop horizontal movement
             rb.velocity = new Vector3(0, rb.velocity.y, 0);
 
-            // Tilt the camera
-            float tiltDirection = wallLeft ? tiltAngle : -tiltAngle; // Tilt left or right depending on the wall
-            playerCamera.transform.localRotation = Quaternion.Euler(0, 0, tiltDirection);
+            // Determine target tilt angle based on the wall side
+            float targetTilt = wallLeft ? -tiltAngle : tiltAngle;
+
+            // Smoothly interpolate current tilt towards the target tilt
+            currentTilt = Mathf.LerpAngle(currentTilt, targetTilt, tiltSpeed * Time.deltaTime);
+
+            // Apply the tilt without affecting x and y axes
+            Quaternion originalRotation = playerCamera.transform.localRotation;
+            playerCamera.transform.localRotation = Quaternion.Euler(
+                originalRotation.eulerAngles.x,
+                originalRotation.eulerAngles.y,
+                currentTilt
+            );
         }
         else
         {
             // Re-enable gravity when not sticking to a wall
             rb.useGravity = true;
 
-            // Reset camera tilt when not sticking
-            playerCamera.transform.localRotation = Quaternion.Euler(0, 0, 0);
+            // Smoothly reset the tilt back to 0 when not wall running
+            currentTilt = Mathf.LerpAngle(currentTilt, 0f, tiltSpeed * Time.deltaTime);
+
+            // Apply the reset tilt without affecting x and y axes
+            Quaternion originalRotation = playerCamera.transform.localRotation;
+            playerCamera.transform.localRotation = Quaternion.Euler(
+                originalRotation.eulerAngles.x,
+                originalRotation.eulerAngles.y,
+                currentTilt
+            );
         }
     }
 }

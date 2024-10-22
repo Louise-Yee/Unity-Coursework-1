@@ -101,9 +101,12 @@ public class PlayerMovement : MonoBehaviour
         float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
         float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
 
+        // Vertical rotation for looking up and down (applied to the camera)
         xRotation -= mouseY;
-        xRotation = Mathf.Clamp(xRotation, -90f, 90f);
+        xRotation = Mathf.Clamp(xRotation, -90f, 90f); // Prevents the player from looking too far up or down
         cameraTransform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+
+        // Horizontal rotation for looking left and right (applied to the player body)
         transform.Rotate(Vector3.up * mouseX);
     }
 
@@ -246,5 +249,20 @@ public class PlayerMovement : MonoBehaviour
             vector = vector.normalized * maxMagnitude;
         }
         return vector;
+    }
+
+    public float GetCurrentJumpHeight()
+    {
+        return transform.position.y; // Returns the player's current vertical position
+    }
+
+    public float GetCurrentSpeed()
+    {
+        // If you're using a CharacterController
+        // Vector3 velocity = controller.velocity; // This gets the current velocity of the CharacterController
+        // return new Vector2(velocity.x, velocity.z).magnitude; // Calculate speed on the X-Z plane (ignoring vertical speed)
+
+        // If you are using Rigidbody
+        return rb.velocity.magnitude; // This gives the total speed of the Rigidbody
     }
 }
