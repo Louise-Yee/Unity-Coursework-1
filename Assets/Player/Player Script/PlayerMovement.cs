@@ -12,7 +12,7 @@ public class PlayerMovement : MonoBehaviour
 
     // Player state variables
     private Vector3 playerVelocity;
-    private bool groundedPlayer;
+    public bool groundedPlayer;
     private bool enableMovement = true;
 
     // Movement properties
@@ -53,6 +53,13 @@ public class PlayerMovement : MonoBehaviour
     private bool isCrouching = false; // Track if player is crouching
     private float originalHeight; // Store original height
 
+    [Header("Wall Run")]
+    public LayerMask whatIsWall;
+    public float wallCheckDistance = 1f;
+    private bool wallLeft;
+    private bool wallRight;
+    private RaycastHit leftWallHit;
+    private RaycastHit rightWallHit;
     public CharacterController Controller
     {
         get
@@ -94,9 +101,12 @@ public class PlayerMovement : MonoBehaviour
         float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
         float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
 
+        // Vertical rotation for looking up and down (applied to the camera)
         xRotation -= mouseY;
-        xRotation = Mathf.Clamp(xRotation, -90f, 90f);
+        xRotation = Mathf.Clamp(xRotation, -90f, 90f); // Prevents the player from looking too far up or down
         cameraTransform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+
+        // Horizontal rotation for looking left and right (applied to the player body)
         transform.Rotate(Vector3.up * mouseX);
     }
 
@@ -135,10 +145,34 @@ public class PlayerMovement : MonoBehaviour
 
     private void HandleJumpAndGravity()
     {
+        Vector3 origin = transform.position + Vector3.up * 0.5f;
+        // Check for left wall
+        wallLeft = Physics.Raycast(
+            origin,
+            -transform.right,
+            out leftWallHit,
+            wallCheckDistance,
+            whatIsWall
+        );
+
+        // Check for right wall
+        wallRight = Physics.Raycast(
+            origin,
+            transform.right,
+            out rightWallHit,
+            wallCheckDistance,
+            whatIsWall
+        );
+        // Check if the player is sticking to a wall
+        if (!groundedPlayer && (wallLeft || wallRight) && Input.GetKey(KeyCode.Space))
+        {
+            // Do not apply gravity while sticking to the wall
+            return;
+        }
+
+        // Jump logic
         if (Input.GetButtonDown("Jump") && jumpCount < maxJumps && !jumpBlocked)
         {
-            // Calculate the initial jump velocity using the physics formula:
-            // v = sqrt(2 * gravity * jumpHeight)
             playerVelocity.y = Mathf.Sqrt(jumpHeight * -2f * gravityValue);
             jumpCount++;
             jumpBlocked = true;
@@ -215,5 +249,20 @@ public class PlayerMovement : MonoBehaviour
             vector = vector.normalized * maxMagnitude;
         }
         return vector;
+    }
+
+    public float GetCurrentJumpHeight()
+    {
+        return transform.position.y; // Returns the player's current vertical position
+    }
+
+    public float GetCurrentSpeed()
+    {
+        // If you're using a CharacterController
+        // Vector3 velocity = controller.velocity; // This gets the current velocity of the CharacterController
+        // return new Vector2(velocity.x, velocity.z).magnitude; // Calculate speed on the X-Z plane (ignoring vertical speed)
+
+        // If you are using Rigidbody
+        return rb.velocity.magnitude; // This gives the total speed of the Rigidbody
     }
 }
