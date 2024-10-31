@@ -27,9 +27,9 @@ public class PlayerMovement : MonoBehaviour
     // Jumping properties
     [Header("Jumping Properties")]
     public int maxJumps = 2;
-    private int jumpCount;
+    public int jumpCount;
     public float jumpCooldown = 1.0f;
-    private bool jumpBlocked = false;
+    public bool jumpBlocked = false;
 
     // Camera and ground checking
     [Header("Camera and Ground Check")]
@@ -164,7 +164,7 @@ public class PlayerMovement : MonoBehaviour
             whatIsWall
         );
         // Check if the player is sticking to a wall
-        if (!groundedPlayer && (wallLeft || wallRight) && Input.GetKey(KeyCode.Space))
+        if (!groundedPlayer && (wallLeft || wallRight) && Input.GetMouseButton(1))
         {
             // Do not apply gravity while sticking to the wall
             return;
@@ -211,7 +211,6 @@ public class PlayerMovement : MonoBehaviour
         {
             isCrouching = true;
             controller.height = crouchHeight; // Set character height to crouch height
-            // Optionally, adjust center or collider properties for better crouching behavior
         }
     }
 
@@ -221,7 +220,6 @@ public class PlayerMovement : MonoBehaviour
         {
             isCrouching = false;
             controller.height = originalHeight; // Restore character height to original
-            // Optionally, adjust center or collider properties for standing behavior
         }
     }
 
@@ -258,11 +256,6 @@ public class PlayerMovement : MonoBehaviour
 
     public float GetCurrentSpeed()
     {
-        // If you're using a CharacterController
-        // Vector3 velocity = controller.velocity; // This gets the current velocity of the CharacterController
-        // return new Vector2(velocity.x, velocity.z).magnitude; // Calculate speed on the X-Z plane (ignoring vertical speed)
-
-        // If you are using Rigidbody
         return rb.velocity.magnitude; // This gives the total speed of the Rigidbody
     }
 }
