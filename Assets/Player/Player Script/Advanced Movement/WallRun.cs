@@ -13,13 +13,17 @@ public class WallStick : MonoBehaviour
 
     // Camera reference
     public Camera playerCamera;
-    public float tiltAngle = 15f; // Angle to tilt the camera
+    public float tiltAngle = 30f; // Angle to tilt the camera
     public float tiltSpeed = 5f; // Speed of camera tilt transition
     private float currentTilt = 0f; // Track the current tilt
     private RaycastHit leftWallHit;
     private RaycastHit rightWallHit;
     private bool wallLeft;
     private bool wallRight;
+
+    [Header("Wall Bounce")]
+    public float bounceForce = 8f; // Force applied when bouncing off a wall
+    public float horizontalBounceForce = 5f; // Horizontal force applied when bouncing off a wa
 
     private void Start()
     {
@@ -36,7 +40,14 @@ public class WallStick : MonoBehaviour
     private void Update()
     {
         CheckForWall();
-        StickToWall();
+        if (Input.GetMouseButton(1))
+        {
+            StickToWall();
+        }
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            BounceOffWall();
+        }
     }
 
     private void CheckForWall()
@@ -77,7 +88,7 @@ public class WallStick : MonoBehaviour
     private void StickToWall()
     {
         // Check if player is not grounded and against a wall while holding the spacebar
-        if (!pm.groundedPlayer && (wallLeft || wallRight) && Input.GetKey(KeyCode.Space))
+        if (!pm.groundedPlayer && (wallLeft || wallRight))
         {
             // Disable gravity to stick to the wall
             pm.playerSpeed = pm.isRunning ? 15f : 8f;
@@ -115,6 +126,37 @@ public class WallStick : MonoBehaviour
                 originalRotation.eulerAngles.y,
                 currentTilt
             );
+        }
+    }
+
+    private void BounceOffWall()
+    {
+        if (!pm.groundedPlayer && (wallLeft || wallRight) && !Input.GetMouseButton(1))
+        {
+            // Apply an upward or downward bounce force when the player taps space
+            float bounceDirection = 1f;
+
+            // Clear current movement and apply bounce force
+            rb.velocity = new Vector3(rb.velocity.x, 0, rb.velocity.z); // Clear current y velocity
+
+            // Calculate bounce direction based on which wall is being touched
+            Vector3 bounceDirectionVector = Vector3.up * bounceForce * bounceDirection; // Vertical force
+            if (wallLeft)
+            {
+                // If touching left wall, bounce to the right
+                bounceDirectionVector += transform.right * horizontalBounceForce;
+            }
+            else if (wallRight)
+            {
+                // If touching right wall, bounce to the left
+                bounceDirectionVector += -transform.right * horizontalBounceForce;
+            }
+
+            // Apply the combined vertical and horizontal bounce force
+            rb.AddForce(bounceDirectionVector, ForceMode.Impulse);
+
+            // Reset wall stick state
+            rb.useGravity = true;
         }
     }
 }
